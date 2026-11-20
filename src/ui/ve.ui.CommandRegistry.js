@@ -290,6 +290,12 @@ ve.ui.commandRegistry.register(
 );
 ve.ui.commandRegistry.register(
 	new ve.ui.Command(
+		'focusToolbar', 'content', 'focusToolbar',
+		{ supportedSelections: [ 'linear', 'table' ] }
+	)
+);
+ve.ui.commandRegistry.register(
+	new ve.ui.Command(
 		'comment', 'window', 'open',
 		{ args: [ 'comment' ], supportedSelections: [ 'linear' ] }
 	)

@@ -373,6 +373,7 @@
 	 * @param {Function} [caseItem.expectedData] Function to mutate linear data into expected data
 	 * @param {Function} [caseItem.expectedOriginalData] Function to mutate linear data into expected data after undo
 	 * @param {Function} [caseItem.expectedReturn=true] Expected return value from action method
+	 * @param {string} [caseItem.source] Action source, e.g. 'trigger'
 	 */
 	ve.test.utils.runActionTest = function ( assert, caseItem ) {
 		if ( arguments.length > 2 ) {
@@ -393,7 +394,7 @@
 		const surface = caseItem.createView ?
 				ve.test.utils.createViewOnlySurfaceFromHtml( caseItem.html || ve.dm.example.html ) :
 				ve.test.utils.createModelOnlySurfaceFromHtml( caseItem.html || ve.dm.example.html ),
-			action = ve.ui.actionFactory.create( caseItem.actionName, surface ),
+			action = ve.ui.actionFactory.create( caseItem.actionName, surface, caseItem.source ),
 			data = ve.copy( getSerializableData( surface.getModel().getDocument() ) ),
 			documentModel = surface.getModel().getDocument(),
 			selection = ve.test.utils.selectionFromRangeOrSelection( documentModel, caseItem.rangeOrSelection ),

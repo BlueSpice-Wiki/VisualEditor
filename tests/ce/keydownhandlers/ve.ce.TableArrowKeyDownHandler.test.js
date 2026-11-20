@@ -50,13 +50,7 @@ QUnit.test( 'special key down: table arrow keys (complex movements)', ( assert )
 				msg: 'Shift+tab while in a table cell moves inside the previous cell'
 			},
 			{
-				htmlOrDoc: ( () => {
-					// Create a full surface and return the view, as the UI surface is required for the insert action
-					const surface = ve.test.utils.createSurfaceFromDocument( ve.dm.example.createExampleDocument( 'mergedCells' ) );
-					// Detach $blockers so selections aren't rendered, resulting in false code coverage
-					surface.$blockers.detach();
-					return surface.view;
-				} )(),
+				htmlOrDoc: mergedCellsDoc,
 				rangeOrSelection: {
 					type: 'table',
 					tableRange: new ve.Range( 0, 171 ),
@@ -64,27 +58,20 @@ QUnit.test( 'special key down: table arrow keys (complex movements)', ( assert )
 					fromRow: 6
 				},
 				keys: [ 'TAB' ],
-				expectedData: ( data ) => {
-					const tableCell = [
-						{ type: 'tableCell', attributes: { style: 'data', colspan: 1, rowspan: 1 } },
-						{ type: 'paragraph', internal: { generated: 'wrapper' } },
-						{ type: '/paragraph' },
-						{ type: '/tableCell' }
-					];
-					data.splice(
-						169, 0,
-						{ type: 'tableRow' },
-						...tableCell, ...tableCell, ...tableCell, ...tableCell, ...tableCell, ...tableCell,
-						{ type: '/tableRow' }
-					);
-				},
-				expectedRangeOrSelection: {
+				expectedRangeOrSelection: new ve.Range( 171 ),
+				msg: 'Tab at end of table moves out of table (no keyboard trap)'
+			},
+			{
+				htmlOrDoc: mergedCellsDoc,
+				rangeOrSelection: {
 					type: 'table',
-					tableRange: new ve.Range( 0, 197 ),
+					tableRange: new ve.Range( 0, 171 ),
 					fromCol: 0,
-					fromRow: 7
+					fromRow: 0
 				},
-				msg: 'Tab at end of table inserts new row'
+				keys: [ 'SHIFT+TAB' ],
+				expectedRangeOrSelection: new ve.Range( 0 ),
+				msg: 'Shift+tab at start of table moves out of table'
 			},
 			{
 				htmlOrDoc: mergedCellsDoc,

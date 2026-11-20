@@ -34,8 +34,11 @@ ve.ce.FocusableNode = function VeCeFocusableNode( $focusable, config = {} ) {
 	this.isFocusableSetup = false;
 	this.$highlights = $( '<div>' ).addClass( 've-ce-focusableNode-highlights' )
 		// Allow the highlight to take focus, so that focus is not removed from
-		// the surface when clicking on it (T341681)
-		.attr( 'tabIndex', 0 );
+		// the surface when clicking on it (T341681).
+		// Use -1 so it is focusable by click but not part of the Tab sequence: with 0,
+		// Tab from the surface landed on the highlight, which returned focus to the
+		// surface, creating a keyboard trap (WCAG 2.1.2).
+		.attr( 'tabIndex', -1 );
 	this.$focusable = $focusable || this.$element;
 	this.$bounding = config.$bounding || this.$focusable;
 	this.focusableSurface = null;

@@ -1133,28 +1133,9 @@ ve.ce.Surface.prototype.onDocumentKeyDown = function ( e ) {
 		!( e.metaKey || e.ctrlKey || e.altKey )
 	) {
 		// Manually move focus to the next/previous focusable element (T341687)
-		const surfaceNode = this.$element[ 0 ];
-		const treeWalker = document.createTreeWalker(
-			document.body,
-			NodeFilter.SHOW_ELEMENT,
-			( n ) => {
-				if ( surfaceNode.contains( n ) ) {
-					return NodeFilter.FILTER_REJECT;
-				}
-				if ( OO.ui.isFocusableElement( $( n ) ) ) {
-					return NodeFilter.FILTER_ACCEPT;
-				}
-				return NodeFilter.FILTER_SKIP;
-			}
-		);
-		treeWalker.currentNode = surfaceNode;
-		if ( e.shiftKey ) {
-			treeWalker.previousNode();
-		} else {
-			treeWalker.nextNode();
-		}
-		if ( treeWalker.currentNode ) {
-			treeWalker.currentNode.focus();
+		const targetNode = ve.findFocusableOutside( this.$element[ 0 ], e.shiftKey );
+		if ( targetNode ) {
+			targetNode.focus();
 			e.preventDefault();
 			e.stopPropagation();
 			return;
@@ -1205,17 +1186,15 @@ ve.ce.Surface.prototype.onDocumentKeyDown = function ( e ) {
 ve.ce.Surface.prototype.isBlockedTrigger = function ( trigger ) {
 	const triggerString = trigger.toString(),
 		platformKey = ve.getSystemPlatform() === 'mac' ? 'mac' : 'pc',
-		blockedIfRegisteredTriggers = [ 'tab', 'shift+tab' ],
 		blockedTriggers = {
 			mac: [ 'cmd+b', 'cmd+i', 'cmd+u', 'cmd+z', 'cmd+y', 'cmd+shift+z', 'cmd+[', 'cmd+]' ],
 			pc: [ 'ctrl+b', 'ctrl+i', 'ctrl+u', 'ctrl+z', 'ctrl+y', 'ctrl+shift+z' ]
 		};
 
-	// Special case: only block Tab/Shift+Tab if indentation commands are enabled on this surface,
-	// otherwise allow them to change focus
-	if ( blockedIfRegisteredTriggers.includes( triggerString ) ) {
-		return !!this.surface.triggerListener.getCommandByTrigger( triggerString );
-	}
+	// Tab/Shift+Tab are never blocked: if the indentation commands didn't execute
+	// (e.g. the cursor is not in a list), the keypress must move focus out of the
+	// surface, otherwise the surface is a keyboard trap (WCAG 2.1.2).
+	// Previously these were blocked whenever indentation commands were registered (T172694).
 
 	return blockedTriggers[ platformKey ].includes( triggerString );
 };

@@ -90,6 +90,23 @@ ve.ui.Toolbar.static.setStoredExpanded = function ( name, expanded ) {
 /* Methods */
 
 /**
+ * Handle pointer down and key down events
+ *
+ * OO.ui.Toolbar cancels these events when they don't come from a widget, to stop the toolbar
+ * from stealing focus on click. For keydown this also swallows Tab presses from non-widget
+ * elements inside toolbar dialogs (which are rendered within the toolbar), e.g. scrollable
+ * panels, making them keyboard traps (WCAG 2.1.2). Only apply it to pointer events.
+ *
+ * @inheritdoc
+ */
+ve.ui.Toolbar.prototype.onPointerDown = function ( e ) {
+	if ( e.type === 'keydown' ) {
+		return;
+	}
+	return ve.ui.Toolbar.super.prototype.onPointerDown.apply( this, arguments );
+};
+
+/**
  * Setup toolbar
  *
  * @param {Object} groups List of tool group configurations
@@ -125,6 +142,7 @@ ve.ui.Toolbar.prototype.setup = function ( groups, surface ) {
 		} );
 		ve.ui.Toolbar.super.prototype.setup.call( this, groups );
 		this.setupToolGroupExpansion();
+		this.setupToolGroupFocusReturn();
 	}
 
 	this.groups = groups;
@@ -170,6 +188,41 @@ ve.ui.Toolbar.prototype.setup = function ( groups, surface ) {
 					}
 				} );
 			}
+		}
+	} );
+};
+
+/**
+ * Return focus to a popup tool group's handle when its menu closes while focused
+ *
+ * When a tool is chosen from a menu with the keyboard, the menu is hidden and focus would
+ * be lost to the page body. Following the menu button pattern, focus returns to the menu
+ * button instead, unless the tool moved focus elsewhere (e.g. into a dialog).
+ */
+ve.ui.Toolbar.prototype.setupToolGroupFocusReturn = function () {
+	this.getItems().forEach( ( toolGroup ) => {
+		if ( toolGroup instanceof OO.ui.PopupToolGroup ) {
+			toolGroup.connect( this, { active: [ 'onPopupToolGroupActive', toolGroup ] } );
+		}
+	} );
+};
+
+/**
+ * Handle active events from popup tool groups
+ *
+ * @param {OO.ui.PopupToolGroup} toolGroup
+ * @param {boolean} active
+ */
+ve.ui.Toolbar.prototype.onPopupToolGroupActive = function ( toolGroup, active ) {
+	const isLost = ( el ) => !el || el === document.body || OO.ui.contains( toolGroup.$group[ 0 ], el, true );
+	// The chosen tool may already have been disabled/hidden, so focus can already be lost
+	if ( active || !isLost( document.activeElement ) ) {
+		return;
+	}
+	// Wait for the chosen tool to run, it may move focus somewhere meaningful
+	setTimeout( () => {
+		if ( isLost( document.activeElement ) ) {
+			toolGroup.$handle[ 0 ].focus();
 		}
 	} );
 };

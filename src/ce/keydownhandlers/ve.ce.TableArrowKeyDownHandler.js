@@ -99,7 +99,7 @@ ve.ce.TableArrowKeyDownHandler.static.execute = function ( surface, e ) {
  * @param {number} colOffset how many columns to move
  * @param {boolean} [checkDir=false] whether to translate offsets according to ltr settings
  * @param {boolean} [expand=false] whether to expand the selection or replace it
- * @param {boolean} [wrap=false] Wrap to the next/previous row at edges, insert new row at end
+ * @param {boolean} [wrap=false] Wrap to the next/previous row at edges, leave the table at the start/end
  */
 ve.ce.TableArrowKeyDownHandler.static.moveTableSelection = function ( surface, rowOffset, colOffset, checkDir, expand, wrap ) {
 	let selection = surface.getModel().getSelection();
@@ -128,17 +128,12 @@ ve.ce.TableArrowKeyDownHandler.static.moveTableSelection = function ( surface, r
 
 	adjust();
 
-	// If wrapping forwards didn't move, we must be at the end of the table,
-	// so insert a new row and try again
-	if ( wrap && colOffset > 0 && selection.equals( newSelection ) ) {
-		surface.getSurface().execute( 'table', 'insert', 'row', 'after' );
-		selection = surface.getModel().getSelection();
-		adjust();
-	}
-
-	// If moving up/down didn't move, we must be at the start/end of the table,
-	// so move outside
-	if ( ( rowOffset !== 0 || ( rowOffset === 0 && colOffset === -1 && wrap ) ) && selection.equals( newSelection ) ) {
+	// If moving up/down (or wrapping with Tab/Shift+Tab) didn't move, we must be at the
+	// start/end of the table, so move outside.
+	// Tab at the last cell used to insert a new row, which made the table a keyboard trap:
+	// every further Tab added another row (WCAG 2.1.2). Rows can still be inserted from
+	// the table context menu.
+	if ( ( rowOffset !== 0 || ( colOffset !== 0 && wrap ) ) && selection.equals( newSelection ) ) {
 		const documentModel = surface.getModel().getDocument();
 		let captionNode;
 		if ( ( rowOffset === -1 || ( colOffset === -1 && wrap ) ) && ( captionNode = selection.getTableNode( documentModel ).getCaptionNode() ) ) {

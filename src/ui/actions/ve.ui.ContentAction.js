@@ -27,7 +27,7 @@ OO.inheritClass( ve.ui.ContentAction, ve.ui.Action );
 
 ve.ui.ContentAction.static.name = 'content';
 
-ve.ui.ContentAction.static.methods = [ 'insert', 'remove', 'select', 'pasteSpecial', 'selectAll', 'changeDirectionality', 'submit', 'cancel', 'focusContext' ];
+ve.ui.ContentAction.static.methods = [ 'insert', 'remove', 'select', 'pasteSpecial', 'selectAll', 'changeDirectionality', 'submit', 'cancel', 'focusContext', 'focusToolbar' ];
 
 /* Methods */
 
@@ -170,6 +170,30 @@ ve.ui.ContentAction.prototype.focusContext = function () {
 		}
 	}
 	return false;
+};
+
+/**
+ * Move keyboard focus to the toolbar
+ *
+ * Provides a way to leave the surface from anywhere (e.g. inside lists or tables,
+ * where Tab is used for editing), see WCAG 2.1.2 No Keyboard Trap.
+ * The surface selection is kept, so tools act on it, and is restored when
+ * focus returns to the surface (e.g. by pressing Escape in the toolbar).
+ *
+ * @return {boolean} Action was executed
+ */
+ve.ui.ContentAction.prototype.focusToolbar = function () {
+	const target = this.surface.getTarget(),
+		toolbar = target && target.getToolbar();
+	if ( !toolbar || toolbar.getSurface() !== this.surface ) {
+		return false;
+	}
+	const $focusable = OO.ui.findFocusable( toolbar.$bar );
+	if ( !$focusable.length ) {
+		return false;
+	}
+	$focusable[ 0 ].focus();
+	return true;
 };
 
 /* Registration */

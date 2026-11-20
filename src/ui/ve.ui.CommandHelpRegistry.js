@@ -127,6 +127,14 @@ ve.ui.commandHelpRegistry.register( 'dialog', 'focusContext', {
 	trigger: 'focusContext',
 	label: OO.ui.deferMsg( 'visualeditor-command-dialog-focus-context' )
 } );
+ve.ui.commandHelpRegistry.register( 'dialog', 'focusToolbar', {
+	trigger: 'focusToolbar',
+	label: OO.ui.deferMsg( 'visualeditor-command-dialog-focus-toolbar' )
+} );
+ve.ui.commandHelpRegistry.register( 'dialog', 'returnFromToolbar', {
+	shortcuts: [ 'escape' ],
+	label: OO.ui.deferMsg( 'visualeditor-command-dialog-return-from-toolbar' )
+} );
 
 // Formatting
 ve.ui.commandHelpRegistry.register( 'formatting', 'paragraph', { trigger: 'paragraph', label: OO.ui.deferMsg( 'visualeditor-formatdropdown-format-paragraph' ) } );

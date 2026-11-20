@@ -63,11 +63,52 @@ ve.ui.ToolbarDialog.static.position = 'above';
 /* Methods */
 
 /**
+ * Handle focus events on the window's focus traps
+ *
+ * Toolbar dialogs are not modal, so unlike OO.ui.Dialog they must not keep focus cycling
+ * inside the window (WCAG 2.1.2 No Keyboard Trap): Tab past the last element (or Shift+Tab
+ * before the first one) moves focus out of the dialog, e.g. back to the document.
+ *
+ * @inheritdoc
+ */
+ve.ui.ToolbarDialog.prototype.onFocusTrapFocused = function ( e ) {
+	const backwards = this.$focusTrapBefore.is( e.target ),
+		fromInside = this.tabbingFromInside ||
+			( !!e.relatedTarget && OO.ui.contains( this.$content[ 0 ], e.relatedTarget, true ) );
+	if ( fromInside ) {
+		const target = ve.findFocusableOutside( this.$element[ 0 ], backwards );
+		if ( target ) {
+			target.focus();
+			return;
+		}
+	} else {
+		// Entering the dialog from outside: Tab enters at the first element,
+		// Shift+Tab at the last one
+		this.focus( !backwards );
+		return;
+	}
+	// Parent method
+	ve.ui.ToolbarDialog.super.prototype.onFocusTrapFocused.call( this, e );
+};
+
+/**
  * @inheritdoc
  */
 ve.ui.ToolbarDialog.prototype.initialize = function () {
 	// Parent method
 	ve.ui.ToolbarDialog.super.prototype.initialize.call( this );
+
+	// Remember when Tab is pressed inside the dialog, so #onFocusTrapFocused can tell leaving
+	// the dialog from entering it (focus events' relatedTarget is not reliable in Firefox)
+	this.tabbingFromInside = false;
+	this.$content.on( 'keydown', ( e ) => {
+		if ( e.which === OO.ui.Keys.TAB ) {
+			this.tabbingFromInside = true;
+			setTimeout( () => {
+				this.tabbingFromInside = false;
+			} );
+		}
+	} );
 
 	this.$content.addClass( 've-ui-toolbarDialog-content' );
 	// The following classes are used here:

@@ -48,6 +48,27 @@ QUnit.test( 'increase/decrease', ( assert ) => {
 			msg: 'decrease indentation on Items 1 & 2'
 		},
 		{
+			rangeOrSelection: new ve.Range( 13, 14 ),
+			method: 'increase',
+			source: 'trigger',
+			expectedRangeOrSelection: new ve.Range( 13, 14 ),
+			expectedData: ( data ) => {
+				data.splice( 20, 0, { type: '/listItem' }, { type: '/list' } );
+				data.splice( 10, 1, { type: 'list', attributes: { style: 'bullet' } } );
+			},
+			undo: true,
+			msg: 'increase indentation on Item 2 via keyboard (Tab): has a previous sibling, so it is indented'
+		},
+		{
+			rangeOrSelection: new ve.Range( 3, 19 ),
+			method: 'increase',
+			source: 'trigger',
+			expectedRangeOrSelection: new ve.Range( 3, 19 ),
+			expectedData: noChange,
+			expectedReturn: false,
+			msg: 'increase indentation on Items 1 & 2 via keyboard (Tab): Item 1 has no previous sibling, so nothing is indented and Tab can move focus (no keyboard trap)'
+		},
+		{
 			rangeOrSelection: new ve.Range( 3, 19 ),
 			method: 'increase',
 			expectedRangeOrSelection: new ve.Range( 5, 21 ),

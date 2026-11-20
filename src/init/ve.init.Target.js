@@ -807,11 +807,46 @@ ve.init.Target.prototype.setupToolbar = function ( newSurface ) {
 					}
 				}
 			} );
+
+		// Escape in the toolbar closes an open tool group menu, or returns focus to the surface,
+		// so keyboard users always have a way back (WCAG 2.1.2). Tool group menus are rendered
+		// into toolbar.$popups (in an overlay), so listen there too.
+		toolbar.$element.add( toolbar.$popups ).on( 'keydown', this.onToolbarKeyDown.bind( this, toolbar ) );
 	}
 
 	this.toolbar.setup( this.toolbarGroups, newSurface );
 	this.attachToolbar();
 	requestAnimationFrame( this.onContainerScrollHandler );
+};
+
+/**
+ * Handle keydown events in the toolbar and its popups
+ *
+ * @param {ve.ui.TargetToolbar} toolbar
+ * @param {jQuery.Event} e Keydown event
+ */
+ve.init.Target.prototype.onToolbarKeyDown = function ( toolbar, e ) {
+	if ( e.which !== OO.ui.Keys.ESCAPE || e.isDefaultPrevented() ) {
+		return;
+	}
+	const activeGroup = toolbar.getItems().find(
+		( group ) => group instanceof OO.ui.PopupToolGroup && group.isActive()
+	);
+	if ( activeGroup ) {
+		// Close the open menu and return focus to its handle
+		activeGroup.setActive( false );
+		activeGroup.$handle.trigger( 'focus' );
+		e.preventDefault();
+		e.stopPropagation();
+		return;
+	}
+	const surface = toolbar.getSurface();
+	if ( surface && OO.ui.contains( toolbar.$element[ 0 ], document.activeElement, true ) ) {
+		// Return focus to the surface. The toolbar's focusout handler restores the selection.
+		surface.getView().focus();
+		e.preventDefault();
+		e.stopPropagation();
+	}
 };
 
 /**

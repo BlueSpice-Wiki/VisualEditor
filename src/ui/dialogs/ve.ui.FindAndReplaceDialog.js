@@ -55,8 +55,7 @@ ve.ui.FindAndReplaceDialog.prototype.initialize = function () {
 	this.findText = new OO.ui.TextInputWidget( {
 		placeholder: ve.msg( 'visualeditor-find-and-replace-find-text' ),
 		value: ve.userConfig( 'visualeditor-findAndReplace-findText' ),
-		validate: () => !this.invalidRegex,
-		tabIndex: 1
+		validate: () => !this.invalidRegex
 	} );
 	this.findText.$input.attr( 'aria-label', ve.msg( 'visualeditor-find-and-replace-find-text' ) );
 	this.updateUserConfigDebounced = ve.debounce( this.updateUserConfig.bind( this ), 500 );
@@ -66,69 +65,59 @@ ve.ui.FindAndReplaceDialog.prototype.initialize = function () {
 		title: ve.msg( 'visualeditor-find-and-replace-previous-button' ) + ' ' +
 			ve.ui.triggerRegistry.getMessages( 'findPrevious' ).join( ', ' ),
 		label: ve.msg( 'visualeditor-find-and-replace-previous-button' ),
-		invisibleLabel: true,
-		tabIndex: 2
+		invisibleLabel: true
 	} );
 	this.nextButton = new OO.ui.ButtonWidget( {
 		icon: 'next',
 		title: ve.msg( 'visualeditor-find-and-replace-next-button' ) + ' ' +
 			ve.ui.triggerRegistry.getMessages( 'findNext' ).join( ', ' ),
 		label: ve.msg( 'visualeditor-find-and-replace-next-button' ),
-		invisibleLabel: true,
-		tabIndex: 2
+		invisibleLabel: true
 	} );
 	this.matchCaseToggle = new OO.ui.ToggleButtonWidget( {
 		icon: 'searchCaseSensitive',
 		title: ve.msg( 'visualeditor-find-and-replace-match-case' ),
 		value: ve.userConfig( 'visualeditor-findAndReplace-matchCase' ),
 		label: ve.msg( 'visualeditor-find-and-replace-match-case' ),
-		invisibleLabel: true,
-		tabIndex: 2
+		invisibleLabel: true
 	} );
 	this.regexToggle = new OO.ui.ToggleButtonWidget( {
 		icon: 'searchRegularExpression',
 		title: ve.msg( 'visualeditor-find-and-replace-regular-expression' ),
 		value: ve.userConfig( 'visualeditor-findAndReplace-regex' ),
 		label: ve.msg( 'visualeditor-find-and-replace-regular-expression' ),
-		invisibleLabel: true,
-		tabIndex: 2
+		invisibleLabel: true
 	} );
 	this.wordToggle = new OO.ui.ToggleButtonWidget( {
 		icon: 'quotes',
 		title: ve.msg( 'visualeditor-find-and-replace-word' ),
 		value: ve.userConfig( 'visualeditor-findAndReplace-word' ),
 		label: ve.msg( 'visualeditor-find-and-replace-word' ),
-		invisibleLabel: true,
-		tabIndex: 2
+		invisibleLabel: true
 	} );
 	this.diacriticToggle = new OO.ui.ToggleButtonWidget( {
 		icon: 'searchDiacritics',
 		title: ve.msg( 'visualeditor-find-and-replace-diacritic' ),
 		value: ve.userConfig( 'visualeditor-findAndReplace-diacritic' ),
 		label: ve.msg( 'visualeditor-find-and-replace-diacritic' ),
-		invisibleLabel: true,
-		tabIndex: 2
+		invisibleLabel: true
 	} );
 
 	this.replaceText = new OO.ui.TextInputWidget( {
 		placeholder: ve.msg( 'visualeditor-find-and-replace-replace-text' ),
-		value: ve.userConfig( 'visualeditor-findAndReplace-replaceText' ),
-		tabIndex: 1
+		value: ve.userConfig( 'visualeditor-findAndReplace-replaceText' )
 	} );
 	this.replaceText.$input.attr( 'aria-label', ve.msg( 'visualeditor-find-and-replace-replace-text' ) );
 
 	this.replaceButton = new OO.ui.ButtonWidget( {
-		label: ve.msg( 'visualeditor-find-and-replace-replace-button' ),
-		tabIndex: 1
+		label: ve.msg( 'visualeditor-find-and-replace-replace-button' )
 	} );
 	this.replaceAllButton = new OO.ui.ButtonWidget( {
-		label: ve.msg( 'visualeditor-find-and-replace-replace-all-button' ),
-		tabIndex: 1
+		label: ve.msg( 'visualeditor-find-and-replace-replace-all-button' )
 	} );
 	const doneButton = new OO.ui.ButtonWidget( {
 		classes: [ 've-ui-findAndReplaceDialog-cell' ],
-		label: ve.msg( 'visualeditor-find-and-replace-done' ),
-		tabIndex: 1
+		label: ve.msg( 'visualeditor-find-and-replace-done' )
 	} );
 
 	const optionsGroup = new OO.ui.ButtonGroupWidget( {
@@ -177,9 +166,13 @@ ve.ui.FindAndReplaceDialog.prototype.initialize = function () {
 	this.replaceAllButton.connect( this, { click: 'onReplaceAllButtonClick' } );
 	doneButton.connect( this, { click: 'close' } );
 
+	// Don't wrap around: this is a non-modal toolbar dialog, so Tab past the last
+	// element must be able to leave it (WCAG 2.1.2 No Keyboard Trap).
+	// Widgets no longer use positive tabIndex values (1/2) to put the inputs first: positive
+	// values change the tab order of the whole page and made Shift+Tab leave the page.
+	// Focus order now follows the visual (row) order.
 	this.tabIndexScope = new ve.ui.TabIndexScope( {
-		root: this.$content,
-		wrapAround: true
+		root: this.$content
 	} );
 
 	// Initialization

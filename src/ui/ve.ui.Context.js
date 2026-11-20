@@ -32,9 +32,8 @@ ve.ui.Context = function VeUiContext( surface, config = {} ) {
 
 	this.$focusTrapBefore = $( '<div>' ).prop( 'tabIndex', 0 );
 	this.$focusTrapAfter = $( '<div>' ).prop( 'tabIndex', 0 );
-	this.$focusTrapBefore.add( this.$focusTrapAfter ).on( 'focus', () => {
-		surface.getView().activate();
-	} );
+	this.$focusTrapBefore.on( 'focus', this.onFocusTrapFocus.bind( this, false ) );
+	this.$focusTrapAfter.on( 'focus', this.onFocusTrapFocus.bind( this, true ) );
 
 	// Initialization
 	// Hide element using a class, not this.toggle, as child implementations
@@ -71,6 +70,55 @@ OO.mixinClass( ve.ui.Context, OO.ui.mixin.GroupElement );
 ve.ui.Context.static.isMobile = false;
 
 /* Methods */
+
+/**
+ * Handle focus events on the focus traps before/after the context
+ *
+ * Keeps the keyboard order linear (WCAG 2.1.2 No Keyboard Trap):
+ * document -> context items -> rest of the page. Previously both traps returned focus to
+ * the surface, so Tab could never move past a visible context.
+ *
+ * @param {boolean} isAfter The focus trap after the context items received focus
+ * @param {jQuery.Event} e Focus event
+ */
+ve.ui.Context.prototype.onFocusTrapFocus = function ( isAfter, e ) {
+	const surfaceView = this.surface.getView(),
+		related = e.relatedTarget,
+		fromSurface = !!related && OO.ui.contains( surfaceView.$element[ 0 ], related, true ),
+		fromInside = !!related && OO.ui.contains( this.$element[ 0 ], related, true );
+
+	let target = null;
+	if ( !isAfter && fromSurface ) {
+		// Tab from the surface: enter the context
+		target = this.getFocusableItem( false ) || ve.findFocusableOutside( this.surface.$element[ 0 ] );
+	} else if ( isAfter && fromInside ) {
+		// Tab past the last context item: leave the editor
+		target = ve.findFocusableOutside( this.surface.$element[ 0 ] );
+	} else if ( isAfter && !fromInside ) {
+		// Shift+Tab from after the editor: enter the context from the end
+		target = this.getFocusableItem( true );
+	}
+	if ( target ) {
+		target.focus();
+	} else {
+		// Shift+Tab before the first context item, or nowhere else to go: return to the surface
+		surfaceView.activate();
+	}
+};
+
+/**
+ * Get the first or last focusable element within the context, excluding the focus traps
+ *
+ * @param {boolean} [last=false] Get the last focusable element
+ * @return {HTMLElement|null}
+ */
+ve.ui.Context.prototype.getFocusableItem = function ( last ) {
+	const $traps = this.$focusTrapBefore.add( this.$focusTrapAfter );
+	$traps.prop( 'disabled', true );
+	const $focusable = OO.ui.findFocusable( this.$element, last );
+	$traps.prop( 'disabled', false );
+	return $focusable[ 0 ] || null;
+};
 
 /**
  * Check if context is for mobile devices

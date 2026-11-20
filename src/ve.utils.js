@@ -1323,3 +1323,31 @@ ve.waitForTransition = function ( $element, callback, timeout = 500 ) {
 		}, timeout );
 	}
 };
+
+/**
+ * Find the next (or previous) focusable element in document order outside of a container
+ *
+ * Used to move keyboard focus out of a component (e.g. the editing surface) to where
+ * the browser's own Tab handling would have taken it, see WCAG 2.1.2 No Keyboard Trap.
+ *
+ * @param {HTMLElement} container Container to move out of; its descendants are skipped
+ * @param {boolean} [backwards=false] Find the previous focusable element instead of the next
+ * @return {HTMLElement|null} Focusable element, or null if there is none
+ */
+ve.findFocusableOutside = function ( container, backwards ) {
+	const treeWalker = container.ownerDocument.createTreeWalker(
+		container.ownerDocument.body,
+		NodeFilter.SHOW_ELEMENT,
+		( n ) => {
+			if ( container.contains( n ) ) {
+				return NodeFilter.FILTER_REJECT;
+			}
+			if ( OO.ui.isFocusableElement( $( n ) ) ) {
+				return NodeFilter.FILTER_ACCEPT;
+			}
+			return NodeFilter.FILTER_SKIP;
+		}
+	);
+	treeWalker.currentNode = container;
+	return backwards ? treeWalker.previousNode() : treeWalker.nextNode();
+};

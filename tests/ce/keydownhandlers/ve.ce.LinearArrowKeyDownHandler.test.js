@@ -333,9 +333,12 @@ QUnit.test( 'special key down: linear arrow keys', ( assert ) => {
 			{
 				rangeOrSelection: new ve.Range( 1 ),
 				keys: [ 'TAB' ],
-				expectedRangeOrSelection: new ve.Range( 1 ),
-				expectedHasFocus: true,
-				msg: 'Tab outside a table prevents default'
+				// Tab where indentation does not apply moves the focus out of the surface,
+				// so the surface is not a keyboard trap (WCAG 2.1.2).
+				// See the allowTabFocusChange case below regarding the selection.
+				skipSelectionAssertion: true,
+				expectedHasFocus: false,
+				msg: 'Tab outside a table or list moves the focus from the surface'
 			},
 			{
 				rangeOrSelection: new ve.Range( 1 ),

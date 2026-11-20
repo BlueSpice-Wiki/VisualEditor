@@ -280,6 +280,9 @@ ve.ui.triggerRegistry.register(
 	'cancel', new ve.ui.Trigger( 'escape' )
 );
 ve.ui.triggerRegistry.register(
+	'focusToolbar', new ve.ui.Trigger( 'alt+f10' )
+);
+ve.ui.triggerRegistry.register(
 	'focusContext', {
 		mac: new ve.ui.Trigger( 'cmd+shift+enter' ),
 		pc: new ve.ui.Trigger( 'ctrl+shift+enter' )

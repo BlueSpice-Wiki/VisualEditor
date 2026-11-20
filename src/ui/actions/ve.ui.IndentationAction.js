@@ -80,6 +80,19 @@ ve.ui.IndentationAction.prototype.changeIndentation = function ( indent ) {
 		}
 	} );
 
+	// When indenting via the keyboard (Tab), only indent list items which have a previous
+	// sibling to nest under. This bounds how often Tab can indent, so repeated Tab presses
+	// eventually move focus out of the surface instead of nesting forever (WCAG 2.1.2).
+	if (
+		indent > 0 && this.source === 'trigger' &&
+		fragments.some( ( fragment ) => {
+			const listItem = documentModel.getBranchNodeFromOffset( fragment.getSelection().getRange().start );
+			return !listItem.getParent() || listItem.getParent().children.indexOf( listItem ) < 1;
+		} )
+	) {
+		return false;
+	}
+
 	// Process each fragment (their ranges are automatically adjusted on change)
 	fragments.forEach( ( fragment ) => {
 		const listItem = documentModel.getBranchNodeFromOffset( fragment.getSelection().getRange().start );
